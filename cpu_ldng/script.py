@@ -1,8 +1,47 @@
-from config_db import host, user, password, db_name, port
+from cpu_ldng.config_db import host, user, password, db_name, port
 import psycopg2
 import psutil
+from multiprocessing import *
+import asyncio
+import time
+import nest_asyncio
+nest_asyncio.apply()
 
 cpu_col = psutil.cpu_count()  # кол-во ядер
+
+
+# def start_process(flag):  # Запуск Process
+#     if flag == True:
+#         global p1
+#         p1 = Process(target=start_script, args=()).start()
+#     elif flag == False:
+#         try:
+#             outs, errs = p1.communicate(timeout=15)
+#         except ValueError:
+#             p1.kill()
+#             outs, errs = p1.communicate()
+
+# async def start_process(flag):
+#     await start_script(flag)
+
+
+# flag = True
+stat = True
+
+def loop_remote(status):
+    global loop
+    if status == True:
+        #loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        asyncio.ensure_future(start_script())
+        loop.run_forever()
+    elif status == False:
+        #loop.close()
+        loop.stop()
+        time.sleep(1)
+        loop.close()
+
 
 def new_connection():
     try:
@@ -26,7 +65,7 @@ def new_connection():
             cursor.execute("""CREATE TABLE IF NOT EXISTS cpu_5sec
             (
                 cpu_5sec_id serial,
-                time time    
+                cpu_time time    
             );""")
 
         for i in range(1, int(cpu_col) + 1):  # добавляем колонки в соответствии с кол-ом ядер
@@ -46,7 +85,25 @@ def new_connection():
             connection.close()
 
 #после нажатия кнопки старт добавляем даные CPU в таблицу
-def script(flag):
+
+
+def stop(status):
+    global stat
+    if status == False:
+        stat = False
+    elif stat == False:
+        return False
+    else:
+        return True
+
+
+async def check():
+    flag = stop(True)
+    return(flag)
+
+
+
+async def start_script():
     try:
         connection = psycopg2.connect(
             host=host,
@@ -57,7 +114,9 @@ def script(flag):
 
         # для работы с БД нужно создать объект курсор (для выполнения различных команд SQl)
         id = 1
-        while flag == True:
+        #flag = True
+        #while flag == True:
+        while True:
             if id <= 10:  #720*5=3600сек в 1ч  #12*5=60сек (для теста)
                 info = psutil.cpu_percent(interval=5, percpu=True)
                 with connection.cursor() as cursor:
@@ -68,8 +127,10 @@ def script(flag):
                             f"""UPDATE cpu_5sec SET cpu_{i} = %s 
                             WHERE cpu_5sec_id = {id}; """, [info[i - 1]])
                 id += 1
+                #await check()
             else:
                 id = 1
+
 
     except ValueError:
         pass

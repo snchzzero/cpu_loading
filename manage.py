@@ -1,10 +1,15 @@
 #!/usr/bin/env python
 """Django's command-line utility for administrative tasks."""
+import asyncio
 import os
 import sys
+import asyncio
+import nest_asyncio
+nest_asyncio.apply()
 
 
-def main():
+
+async def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cpu_loading.settings')
     try:
@@ -17,6 +22,8 @@ def main():
         ) from exc
     execute_from_command_line(sys.argv)
 
+#loop2 = asyncio.get_event_loop()
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())
+    #loop2.run_until_complete(main())

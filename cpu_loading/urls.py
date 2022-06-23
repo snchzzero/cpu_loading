@@ -19,5 +19,7 @@ from cpu_ldng import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', views.home(), name='gohome'),
+    path('', views.home, name='gohome'),
+    path('start/', views.start, name='start'),
+    path('stop/', views.stop, name='stop'),
 ]
