@@ -1,11 +1,11 @@
 from cpu_ldng.config_db import host, user, password, db_name, port
 import psycopg2
 import psutil
-from multiprocessing import *
-import asyncio
-import time
-import nest_asyncio
-nest_asyncio.apply()
+# from multiprocessing import *
+# import asyncio
+#import time
+# import nest_asyncio
+#nest_asyncio.apply()
 
 cpu_col = psutil.cpu_count()  # кол-во ядер
 
@@ -25,22 +25,9 @@ cpu_col = psutil.cpu_count()  # кол-во ядер
 #     await start_script(flag)
 
 
-# flag = True
-stat = True
 
-def loop_remote(status):
-    global loop
-    if status == True:
-        #loop = asyncio.get_event_loop()
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        asyncio.ensure_future(start_script())
-        loop.run_forever()
-    elif status == False:
-        #loop.close()
-        loop.stop()
-        time.sleep(1)
-        loop.close()
+
+
 
 
 def new_connection():
@@ -86,24 +73,22 @@ def new_connection():
 
 #после нажатия кнопки старт добавляем даные CPU в таблицу
 
+# stat = True
+# def stop_script(status):
+#     global stat
+#     if status == False:
+#         stat = False
+#     elif stat == False:
+#         return False
+#     else:
+#         return True
 
-def stop(status):
-    global stat
-    if status == False:
-        stat = False
-    elif stat == False:
-        return False
-    else:
-        return True
-
-
-async def check():
-    flag = stop(True)
-    return(flag)
+# def check(flag):
+#     return stop_script(flag)
 
 
 
-async def start_script():
+def start_script():
     try:
         connection = psycopg2.connect(
             host=host,
@@ -116,7 +101,9 @@ async def start_script():
         id = 1
         #flag = True
         #while flag == True:
-        while True:
+        total = 0
+        # while flag == True:
+        while total < 5:
             if id <= 10:  #720*5=3600сек в 1ч  #12*5=60сек (для теста)
                 info = psutil.cpu_percent(interval=5, percpu=True)
                 with connection.cursor() as cursor:
@@ -127,7 +114,8 @@ async def start_script():
                             f"""UPDATE cpu_5sec SET cpu_{i} = %s 
                             WHERE cpu_5sec_id = {id}; """, [info[i - 1]])
                 id += 1
-                #await check()
+                total += 1
+                #flag = check(True)
             else:
                 id = 1
 

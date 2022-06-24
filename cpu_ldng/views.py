@@ -1,11 +1,10 @@
 from django.shortcuts import render, redirect
-from cpu_ldng.script import new_connection, start_script, stop, loop_remote
+from cpu_ldng.script import new_connection, start_script
 from cpu_ldng.forms import Form_StartStop
-from cpu_ldng.models import ModelStartStop
 from datetime import datetime
-import asyncio
-import nest_asyncio
-nest_asyncio.apply()
+
+
+#from .tasks import start_script_insert_date
 
 # loop = asyncio.get_event_loop()
 
@@ -40,9 +39,11 @@ def home(request):
 
 def start(request):
     name = "start"
+    start_script()
+    #start_script_insert_date.delay()  # delay запускает функцию в фоне
     #loop.run_until_complete(start_script())
-
-    loop_remote(True)
+    # new_connection()
+    # loop_remote(True)
     #asyncio.ensure_future(start_script())
     #loop.run_forever()
     return render(request, 'cpu_ldng/home.html', {'name': name, 'now': time()})
@@ -51,7 +52,8 @@ def start(request):
 def stop(request):
     name = "stop"
     try:
-        loop_remote(False)
+        # loop_remote(False)
+        #stop_script(False)
         return render(request, 'cpu_ldng/home.html', {'name': name, 'now': time()})
     except ValueError:
         return render(request, 'cpu_ldng/home.html', {'name': name, 'now': time()})
