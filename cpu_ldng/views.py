@@ -1,9 +1,9 @@
 from django.shortcuts import render, redirect
 import cpu_ldng.script
-from cpu_ldng.script import new_connection
+from cpu_ldng.script import new_connection, stop_time_id
 from cpu_ldng.forms import Form_StartStop
 from datetime import datetime
-from celery import Celery
+from celery import Celery  # для закрытия задачи по id
 from .tasks import start_script_insert_date
 
 from celery.app.control import Control
@@ -49,7 +49,7 @@ def home(request):
 
 def start(request):
     name = "start"
-    global process_id, process
+    global process_id
     process = start_script_insert_date.delay()
     process_id = process.id
 
@@ -84,12 +84,17 @@ def stop(request):
         celeryapp = Celery('app', broker="redis://app_redis:6379/0", backend="redis_uri")
         celeryapp.control.revoke(process_id, terminate=True)
 
+        #для следующего запуска записываем последний id и время остановки
+        last_time = stop_time_id()
+        id = 0
+
         #celery.app.control.Control.revoke(task_id=process_id, terminate=True)
         #Control.revoke(task_id=process_id, terminate=True)
 
         #celery.app.control.Control(process_id, terminate=True)
         #app.control.revoke(process_id, terminate=True)
-        return render(request, 'cpu_ldng/home.html', {'name': process_id, 'now': time()})
+        return render(request, 'cpu_ldng/home.html',
+                      {'name': process_id, 'now': time(), 'last_time': last_time, 'id': id})
     except ValueError:
         return render(request, 'cpu_ldng/home.html', {'name': name, 'now': time()})
 

@@ -1,6 +1,11 @@
 from cpu_ldng.config_db import host, user, password, db_name, port
 import psycopg2
 import psutil
+from datetime import datetime
+import pytz
+
+lasttime = "000"
+
 
 from cpu_ldng.forms import Form_StartStop
 #from cpu_ldng.tasks import start_script_insert_date
@@ -62,44 +67,7 @@ def new_connection():
 
 
 # после нажатия кнопки старт добавляем даные CPU в таблицу
-
-
-
-# stat = True
-# def stop_script(status):
-#     #from script import stat
-#     global stat
-#     if status == False:
-#         stat = False
-#     elif stat == False:
-#         return False
-#     else:
-#         return True
-
-stat = None
-def stop_script(status=True):
-    global stat
-    if status == False:
-        stat = False
-    elif stat == False:
-        return False
-    else:
-        return True
-
-
-
-
-#stat = True
-# def check(stop=False, restart=True):
-#     global check_stop, check_restart
-#     check_stop = stop
-#     check_restart =restart
-#     if check_stop == True and restart
-
-
-
 def start_script():
-    #from .tasks import start_script_insert_date
     try:
         connection = psycopg2.connect(
             host=host,
@@ -108,27 +76,60 @@ def start_script():
             database=db_name)
         connection.autocommit = True  # что бы не писать после каждого запроса коммит
 
+        if table_IS_NOT_NULL(connection) == True:  # если пустая таблица и все NULL
+            id = 1
+        else:
+            last_id, total_5sec_pause = pause(connection)
         # для работы с БД нужно создать объект курсор (для выполнения различных команд SQl)
-        id = 1
         while True:
             if id > 10:  # 720*5=3600сек в 1ч  #12*5=60сек (для теста)
                 id = 1
             info = psutil.cpu_percent(interval=5, percpu=True)
             with connection.cursor() as cursor:
-                cursor.execute(f"""UPDATE cpu_5sec SET cpu_time = now() WHERE cpu_5sec_id = {id};""")
+                time_now = datetime.now(pytz.timezone('Europe/Moscow')).strftime("%H:%M:%S")
+                cursor.execute(f"""UPDATE cpu_5sec SET cpu_time = %s WHERE cpu_5sec_id = {id};""", [time_now])
+
             for i in range(1, int(cpu_col) + 1):  # добавляем данные в колонки в соответствии с кол-ом ядер
                 with connection.cursor() as cursor:
                     cursor.execute(
                         f"""UPDATE cpu_5sec SET cpu_{i} = %s
                         WHERE cpu_5sec_id = {id}; """, [info[i - 1]])
             id += 1
-        # if stop_script() == True:
-        #      start_script_insert_date.delay(id)
-
-
     except ValueError:
         pass
     finally:
         # закрываем подключение к БД
         if connection:
             connection.close()
+
+
+def pause(connection):
+    with connection.cursor() as cursor:
+        cursor.execute("""SELECT MAX(cpu_5sec_id), now() - MAX(cpu_time)
+                        FROM cpu_5sec WHERE cpu_time IS NOT NULL;"""
+                       )
+        all = cursor.fetchall()
+        last_id = int(all[0][0]) + 1  # id в таблице с которого заполняем поля нулями
+        last_time = all[0][1]
+        hour, minute, second = last_time.hour, last_time.minute, last_time.second
+        total_time = int(((hour * 60 * 60) + (minute * 60) + second) / 5)  # коли-во строк в БД с нулями
+
+
+
+
+def table_IS_NOT_NULL(connection):
+    with connection.cursor() as cursor:
+        cursor.execute("""SELECT COUNT(*) FROM cpu_5sec WHERE cpu_time IS NOT NULL;""")
+        if int(cursor.fetchall()[0][0]) == 0:  # целое число
+            return True  # если все NULL
+        else:
+            return False
+
+
+
+
+
+
+
+
+
