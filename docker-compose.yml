@@ -41,8 +41,8 @@ services:
   celery:
     build: .
     container_name: 'app_celery'
-    command: celery -A cpu_loading worker -B
-    #command: celery -A cpu_loading worker -l info
+#    command: celery -A cpu_loading worker -B
+    command: celery -A cpu_loading worker -l info
     volumes:
       - .:/code
     links:
@@ -51,6 +51,24 @@ services:
       - web
       - redis
       #- db  # возмжно без зависимости
+
+#  flower:
+#    #image: puckel/docker-airflow:latest
+#    #restart: always
+#    container_name: flower
+#    build: .
+#    #command: celery -A cpu_loading flower --port=5556
+#    #command: celery -A cpu_loading flower --port=5555
+#    #command: flower -A cpu_loading --port=5555
+#    command: celery flower --port=5556
+#    ports:
+#      - 5556:5555
+#    depends_on:
+#      - web
+#      - redis
+#      - celery
+
+
 
 volumes:
   postgres_data:

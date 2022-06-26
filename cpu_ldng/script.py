@@ -1,32 +1,21 @@
 from cpu_ldng.config_db import host, user, password, db_name, port
 import psycopg2
 import psutil
-# from multiprocessing import *
-# import asyncio
-#import time
-# import nest_asyncio
-#nest_asyncio.apply()
+
+from cpu_ldng.forms import Form_StartStop
+#from cpu_ldng.tasks import start_script_insert_date
+#from tasks import start_script_insert_date
+
+
+
 
 cpu_col = psutil.cpu_count()  # кол-во ядер
 
 
-# def start_process(flag):  # Запуск Process
-#     if flag == True:
-#         global p1
-#         p1 = Process(target=start_script, args=()).start()
-#     elif flag == False:
-#         try:
-#             outs, errs = p1.communicate(timeout=15)
-#         except ValueError:
-#             p1.kill()
-#             outs, errs = p1.communicate()
-
-# async def start_process(flag):
-#     await start_script(flag)
-
-
-
-
+# def start_script_delay():
+#     from .tasks import start_script_insert_date
+#     #start_script_insert_date.delay(1)  # delay запускает функцию в фоне
+#     start_script_insert_date.delay(1)
 
 
 
@@ -52,7 +41,7 @@ def new_connection():
             cursor.execute("""CREATE TABLE IF NOT EXISTS cpu_5sec
             (
                 cpu_5sec_id serial,
-                cpu_time time    
+                cpu_time time
             );""")
 
         for i in range(1, int(cpu_col) + 1):  # добавляем колонки в соответствии с кол-ом ядер
@@ -71,10 +60,14 @@ def new_connection():
         if connection:
             connection.close()
 
-#после нажатия кнопки старт добавляем даные CPU в таблицу
+
+# после нажатия кнопки старт добавляем даные CPU в таблицу
+
+
 
 # stat = True
 # def stop_script(status):
+#     #from script import stat
 #     global stat
 #     if status == False:
 #         stat = False
@@ -83,12 +76,30 @@ def new_connection():
 #     else:
 #         return True
 
-# def check(flag):
-#     return stop_script(flag)
+stat = None
+def stop_script(status=True):
+    global stat
+    if status == False:
+        stat = False
+    elif stat == False:
+        return False
+    else:
+        return True
+
+
+
+
+#stat = True
+# def check(stop=False, restart=True):
+#     global check_stop, check_restart
+#     check_stop = stop
+#     check_restart =restart
+#     if check_stop == True and restart
 
 
 
 def start_script():
+    #from .tasks import start_script_insert_date
     try:
         connection = psycopg2.connect(
             host=host,
@@ -99,25 +110,20 @@ def start_script():
 
         # для работы с БД нужно создать объект курсор (для выполнения различных команд SQl)
         id = 1
-        #flag = True
-        #while flag == True:
-        total = 0
-        # while flag == True:
-        while total < 5:
-            if id <= 10:  #720*5=3600сек в 1ч  #12*5=60сек (для теста)
-                info = psutil.cpu_percent(interval=5, percpu=True)
-                with connection.cursor() as cursor:
-                    cursor.execute(f"""UPDATE cpu_5sec SET cpu_time = now() WHERE cpu_5sec_id = {id};""")
-                for i in range(1, int(cpu_col) + 1):  # добавляем данные в колонки в соответствии с кол-ом ядер
-                    with connection.cursor() as cursor:
-                        cursor.execute(
-                            f"""UPDATE cpu_5sec SET cpu_{i} = %s 
-                            WHERE cpu_5sec_id = {id}; """, [info[i - 1]])
-                id += 1
-                total += 1
-                #flag = check(True)
-            else:
+        while True:
+            if id > 10:  # 720*5=3600сек в 1ч  #12*5=60сек (для теста)
                 id = 1
+            info = psutil.cpu_percent(interval=5, percpu=True)
+            with connection.cursor() as cursor:
+                cursor.execute(f"""UPDATE cpu_5sec SET cpu_time = now() WHERE cpu_5sec_id = {id};""")
+            for i in range(1, int(cpu_col) + 1):  # добавляем данные в колонки в соответствии с кол-ом ядер
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        f"""UPDATE cpu_5sec SET cpu_{i} = %s
+                        WHERE cpu_5sec_id = {id}; """, [info[i - 1]])
+            id += 1
+        # if stop_script() == True:
+        #      start_script_insert_date.delay(id)
 
 
     except ValueError:

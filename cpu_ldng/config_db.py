@@ -4,6 +4,7 @@
 # db_name = "cpu_loading"
 # port = "5432"
 
+# для docker
 host = "pg_db"
 user = "postgres"
 password = "123"

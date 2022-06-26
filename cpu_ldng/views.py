@@ -1,12 +1,22 @@
 from django.shortcuts import render, redirect
-from cpu_ldng.script import new_connection, start_script
+import cpu_ldng.script
+from cpu_ldng.script import new_connection
 from cpu_ldng.forms import Form_StartStop
 from datetime import datetime
+from celery import Celery
+from .tasks import start_script_insert_date
+
+from celery.app.control import Control
+
+from celery.worker.control import revoke
 
 
-#from .tasks import start_script_insert_date
+from .tasks import start_script_insert_date
+from celery.app import default_app
 
-# loop = asyncio.get_event_loop()
+
+
+#process_id = 0
 
 
 def time():
@@ -39,8 +49,14 @@ def home(request):
 
 def start(request):
     name = "start"
-    start_script()
-    #start_script_insert_date.delay()  # delay запускает функцию в фоне
+    global process_id, process
+    process = start_script_insert_date.delay()
+    process_id = process.id
+
+    # process = start_script_insert_date.delay()  # delay запускает функцию в фоне
+    # global process_id
+    # process_id = process.id
+
     #loop.run_until_complete(start_script())
     # new_connection()
     # loop_remote(True)
@@ -52,15 +68,30 @@ def start(request):
 def stop(request):
     name = "stop"
     try:
+
+
         # loop_remote(False)
         #stop_script(False)
-        return render(request, 'cpu_ldng/home.html', {'name': name, 'now': time()})
+        #celery_app.control.revoke(process_id, terminate=True)
+        #control.revoke(process_id)
+        #Control.revoke(self=() ,task_id=process_id)
+
+        #default_app.control.revoke(process_id, terminated=True, signal='SIGKILL')
+
+        #start_script_insert_date.control.revoke(process_id, terminate=True) # не рабочий вар
+
+        # удаляем задачу(процесс) по ее id
+        celeryapp = Celery('app', broker="redis://app_redis:6379/0", backend="redis_uri")
+        celeryapp.control.revoke(process_id, terminate=True)
+
+        #celery.app.control.Control.revoke(task_id=process_id, terminate=True)
+        #Control.revoke(task_id=process_id, terminate=True)
+
+        #celery.app.control.Control(process_id, terminate=True)
+        #app.control.revoke(process_id, terminate=True)
+        return render(request, 'cpu_ldng/home.html', {'name': process_id, 'now': time()})
     except ValueError:
         return render(request, 'cpu_ldng/home.html', {'name': name, 'now': time()})
-    #loop.close()
-    #loop.is_closed()
-    #loop.shutdown_asyncgens(start_script)
-    #stop(False)
 
 
 
