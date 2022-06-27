@@ -37,7 +37,7 @@ def new_connection():
             with connection.cursor() as cursor:
                 cursor.execute(f"""ALTER TABLE cpu_5sec ADD COLUMN cpu_{i} real;""")
         # 720*5=3600сек в 1ч  #12*5=60сек (для теста) #721 вставить
-        for cpu_5sec_id in range(1, 31):  # формируем пустую таблицу заполненую NULL
+        for cpu_5sec_id in range(1, 121):  # формируем пустую таблицу заполненую NULL
         #for cpu_5sec_id in range(1, 11):  # формируем пустую таблицу заполненую NULL
             with connection.cursor() as cursor:
                 cursor.execute(
@@ -63,8 +63,8 @@ def start_script():
 
         # для работы с БД нужно создать объект курсор (для выполнения различных команд SQl)
         id = 1
-        for _ in range(30):
-            if id > 30:  # 720*5=3600сек в 1ч  #12*5=60сек (для теста)
+        for _ in range(120):
+            if id > 120:  # 720*5=3600сек в 1ч  #12*5=60сек (для теста)
                 id = 1
             info = psutil.cpu_percent(interval=5, percpu=True)
             with connection.cursor() as cursor:

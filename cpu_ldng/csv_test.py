@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 cpu_col = psutil.cpu_count()  # кол-во ядер
 
-def test():
+def select_all():
     try:
         connection = psycopg2.connect(
             host=host,
@@ -34,10 +34,10 @@ def test():
         if connection:
             connection.close()
 
-def csv_w():
+def csv_all():
     with open('test.csv', 'w') as f:
         writer = csv.writer(f)
-        data = test()
+        data = select_all()
         ROW =  ['cpu_5sec_id', 'cpu_time']
         for i in range(1, int(cpu_col) + 1):
             ROW.append(f'cpu_{i}')
@@ -46,11 +46,9 @@ def csv_w():
             print(row)
             writer.writerow(row)
 
-def graf():
+def figure_1():
     data = pd.read_csv('test.csv')
     data.head()
-    #print(data)
-    #data_DB = sns.get_data_home('test')
 
     sns.set(font_scale=0.7)  # размер надписей к осям
     plt.figure(figsize=(10, 15))
@@ -64,24 +62,10 @@ def graf():
     swarm_plot.figure.savefig("output_1.png")
     plt.show()
 
-    #sns.barplot(x="cpu_time", y="cpu_1", data=data)
-    #sns.displot(data=data, x="cpu_time", kind="hist")
-
-    #sns.catplot(x="cpu_time", y="cpu_1", kind="bar", data=data, palette="pastel")
-
-    # for cpu_id in range(1, cpu_col + 1):
-    #     swarm_plot = sns.lineplot(x="cpu_time", y=f"cpu_{cpu_id}", ci=None, data=data)
-    #
-    # swarm_plot.figure.savefig("output.png")
-    #plt.show()
-
-
-
     # cpu_1 = list(data.iloc[:,2])
     # cpu_2 = list(data.iloc[:,3])
     # cpu_3 = list(data.iloc[:,4])
     # cpu_4 = list(data.iloc[:,5])
-
 
     # столбчатый график, требует настройки
     # data = pd.read_csv('test.csv')
@@ -110,6 +94,44 @@ def graf():
     # plt.savefig("График.png")
 
 
+def csv_srez():
 
-csv_w()
-graf()
+
+
+    # записываем среднее значение по всем ядрам за каждые 5 сек
+    with open('srez_1.csv', 'w') as f:
+        data = pd.read_csv('test.csv')
+        writer = csv.writer(f)
+        ROW =  ['cpu_5sec_id', 'cpu_time', 'cpu_avg']
+        writer.writerow(ROW)
+        for id in data['cpu_5sec_id']:
+            row_1 = list(data.iloc[id-1, :2])
+            row_2 = round((sum(list(data.iloc[id-1, 2:])) / cpu_col), 2)  # средняя нагрузка на все ядра за 5 сек
+            row_1.append(row_2)
+            writer.writerow(row_1)
+    # записываем среднее значение по среднему ядру за 1мин (60/5=12)
+    with open('srez_2.csv', 'w') as f:
+        data = pd.read_csv('srez_1.csv')
+        writer = csv.writer(f)
+        ROW = ['cpu_5sec_id', 'cpu_time', 'cpu_avg']
+        writer.writerow(ROW)
+        len_max = len(data['cpu_5sec_id'])
+
+        for id in range(0, len_max, 12):
+            if id + 12 >= len_max:
+                row_2 = round((sum(list(data.iloc[id :, 2])) / 12), 2)
+            else:
+                row_2 = round((sum(list(data.iloc[id : (id + 12), 2])) / 12), 2)
+            row_1 = list(data.iloc[id , 0:2])
+            row_1.append(row_2)
+            writer.writerow(row_1)
+
+def figure_2():
+    pass
+
+
+
+csv_all()
+figure_1()
+csv_srez()
+#figure_2()
