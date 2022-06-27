@@ -58,7 +58,8 @@ def figure_1():
     swarm_plot.set_title("История измения моментальной загрузки процессора")
     swarm_plot.set_ylabel("загрузка процессора")
     swarm_plot.set_xlabel("время, шаг(5сек.)")
-    plt.xticks(rotation=90)
+    plt.xticks(color='w')
+    #plt.xticks(rotation=90)
     swarm_plot.figure.savefig("output_1.png")
     plt.show()
 
@@ -127,11 +128,26 @@ def csv_srez():
             writer.writerow(row_1)
 
 def figure_2():
-    pass
+    data = pd.read_csv('srez_2.csv')
+    data.head()
+
+    sns.set(font_scale=0.7)  # размер надписей к осям
+    plt.figure(figsize=(10, 15))
+
+    swarm_plot = sns.lineplot(data=data, x='cpu_time', y='cpu_avg', legend=False)
+
+    plt.legend(labels='cpu', loc='upper right')  # добавляем легенду
+
+    swarm_plot.set_title("Усредненная загрузка процессора")
+    swarm_plot.set_ylabel("загрузка процессора")
+    swarm_plot.set_xlabel("время, шаг(60сек.)")
+    plt.xticks(rotation=90)
+    swarm_plot.figure.savefig("output_2.png")
+    plt.show()
 
 
 
 csv_all()
 figure_1()
 csv_srez()
-#figure_2()
+figure_2()
