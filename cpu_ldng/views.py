@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 import cpu_ldng.script
-from cpu_ldng.script import new_connection, stop_time_id
+from cpu_ldng.script import new_connection
 from cpu_ldng.forms import Form_StartStop
 from datetime import datetime
 from celery import Celery  # для закрытия задачи по id
@@ -83,10 +83,9 @@ def stop(request):
         # удаляем задачу(процесс) по ее id
         celeryapp = Celery('app', broker="redis://app_redis:6379/0", backend="redis_uri")
         celeryapp.control.revoke(process_id, terminate=True)
-
+        last_time = 333
         #для следующего запуска записываем последний id и время остановки
-        last_time = stop_time_id()
-        id = 0
+
 
         #celery.app.control.Control.revoke(task_id=process_id, terminate=True)
         #Control.revoke(task_id=process_id, terminate=True)

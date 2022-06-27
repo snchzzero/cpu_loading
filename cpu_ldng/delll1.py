@@ -62,7 +62,7 @@ def start_script():
 
         # для работы с БД нужно создать объект курсор (для выполнения различных команд SQl)
         id = 1
-        for _ in range(5):
+        for _ in range(3):
             if id > 10:  # 720*5=3600сек в 1ч  #12*5=60сек (для теста)
                 id = 1
             info = psutil.cpu_percent(interval=5, percpu=True)
@@ -114,13 +114,31 @@ def last_id_time():
             database=db_name)
         connection.autocommit = True
         with connection.cursor() as cursor:
-            cursor.execute("""SELECT MAX(cpu_5sec_id), now() - MAX(cpu_time), MAX(cpu_time)
+            cursor.execute("""SELECT MAX(cpu_5sec_id), MAX(cpu_time)
                             FROM cpu_5sec WHERE cpu_time IS NOT NULL;"""
                            )
+
             all = cursor.fetchall()
             last_id = int(all[0][0]) + 1  # id в таблице с которого заполняем поля нулями
-            pause_time = all[0][1]
-            last_time = all[0][2]
+            last_time = all[0][1]
+
+
+            time_now = datetime.now(pytz.timezone('Europe/Moscow')).strftime("%H:%M:%S")
+            pause_time = time(int(time_now.split(':')[0]),
+                                int(time_now.split(':')[1]),
+                                int(time_now.split(':')[2]))
+            pause_time_finish = timedelta(hours=pause_time.hour,
+                                 minutes=pause_time.minute,
+                                 seconds=pause_time.second)
+            pause_time_start = timedelta(hours=last_time.hour,
+                                         minutes=last_time.minute,
+                                         seconds=last_time.second)
+            pause_time = str(pause_time_finish - pause_time_start)
+            pause_time = time(int(pause_time.split(':')[0]),
+                              int(pause_time.split(':')[1]),
+                              int(pause_time.split(':')[2]))
+
+
 
             hour_p, minute_p, second_p = pause_time.hour, pause_time.minute, pause_time.second
             hour_l, minute_l, second_l = last_time.hour, last_time.minute, last_time.second
@@ -153,7 +171,7 @@ def last_id_time():
                                 f"""UPDATE cpu_5sec SET cpu_{i} = 0
                                 WHERE cpu_5sec_id = {id}; """)
                 id += 1
-
+        return id  # возвращаем id с которого продолжим заполнение
 
 
     except ValueError:
