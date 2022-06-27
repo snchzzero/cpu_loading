@@ -181,6 +181,6 @@ def last_id_time():
         if connection:
             connection.close()
 
-#new_connection()
-#start_script()
-last_id_time()
+new_connection()
+start_script()
+#last_id_time()
