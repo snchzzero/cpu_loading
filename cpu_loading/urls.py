@@ -22,4 +22,8 @@ urlpatterns = [
     path('', views.home, name='gohome'),
     path('start/', views.start, name='start'),
     path('stop/', views.stop, name='stop'),
+    path('reset/', views.reset, name='reset'),
+    path('create_fig/', views.create_fig, name='create_fig'),
+    path('send_fig/', views.send_fig, name='send_fig'),
+
 ]

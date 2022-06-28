@@ -19,7 +19,7 @@
                 <br>
                 {% csrf_token %}
                 <div class="row">
-                    <div class="col-lg-2 align-self-center">
+                    <div class="col-lg-1 align-self-center">
                         <button class="btn btn-primary"
                                 type="submit"
                                 name="Start_Model"
@@ -27,20 +27,64 @@
                                 value="start">Старт
                         </button>
                     </div>
-                    <div class="col-lg-2 align-self-center">
+                    <div class="col-lg-1 align-self-center">
                         <button class="btn btn-primary"
                                 type="submit"
                                 name="Stop_Model"
                                 id="Stop_Model"
-                                value="stop">Стоп</button>
+                                value="stop">Стоп
+                        </button>
                     </div>
-                    <div class="col-lg-4 align-self-end">
-                    <b> Статус: {{ now }} <font color="green">{{ name }}
-                        Другие параметры: {{ last_time }}  {{ id }}</font><b>
+                    <div class="col">
+                        <button class="btn btn-success"
+                                type="submit"
+                                name="Reset_Model"
+                                id="Reset_Model"
+                                value="reset">Сброс
+                        </button>
                     </div>
+
+                    <div class="col">
+                        <button class="btn btn-outline-secondary"
+                                type="submit"
+                                name="Create_Fig_Model"
+                                id="Create_Fig_Model"
+                                value="create_fig">Создать новый график
+                        </button>
+                    </div>
+                    <div class="col">
+                        <button class="btn btn-outline-secondary"
+                                type="submit"
+                                name="Send_Fig_Model"
+                                id="Send_Fig_Model"
+                                value="send_fig">Показать график
+                        </button>
+                    </div>
+
+                    <div class="col-lg-3 align-self-end">
+                        <b> Статус: {{ now }} <font color="green">{{ name }}</font><b>
+                    </div>
+
                 </div>
             </form>
         </div>
+
+            {% if fig == "send_fig" %}
+
+                <div class="row justify-content-center">
+                    <img src="{% static 'cpu_ldng/output_1.png' %}" class="img-fluid">
+
+
+
+                    <img src="{% static 'cpu_ldng/output_2.png' %}" class="img-fluid">
+                </div>
+
+            {% endif %}
+
+            <br>
+            <br>
+
+
 
 
 

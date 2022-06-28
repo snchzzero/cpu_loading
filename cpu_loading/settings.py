@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 
 from pathlib import Path
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -23,7 +24,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-av$m9m&nfy9lu1)_w^j#35b-%u@=#&5_c9a8*^l^qr@s&*650+'
 
 # SECURITY WARNING: don't run with debug turned on in production!
+
 DEBUG = True
+# DEBUG = False
 
 ALLOWED_HOSTS = []
 
@@ -81,6 +84,9 @@ WSGI_APPLICATION = 'cpu_loading.wsgi.application'
 #     }
 # }
 
+
+### for PostgreSQL local
+
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -92,6 +98,9 @@ WSGI_APPLICATION = 'cpu_loading.wsgi.application'
 #     }
 # }
 
+
+### for Docker
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -101,7 +110,7 @@ DATABASES = {
         'PORT': '5432',
         'PASSWORD': '123'
     }
-}
+ }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
@@ -144,6 +153,7 @@ TIME_ZONE = 'Europe/Moscow'  # доп. строчка
 
 STATIC_URL = 'static/'
 
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
@@ -153,6 +163,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 #REDIS_HOST = '0.0.0.0'
 #REDIS_HOST = '172.21.0.3'
 # REDIS_HOST = '127.0.0.1'
+#redis://app_redis:6379/0
 
 REDIS_HOST = 'app_redis'  # название контейнера в docker
 REDIS_PORT = '6379'

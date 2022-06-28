@@ -4,25 +4,7 @@ import psutil
 from datetime import datetime, time, timedelta
 import pytz
 
-lasttime = "000"
-
-
-from cpu_ldng.forms import Form_StartStop
-#from cpu_ldng.tasks import start_script_insert_date
-#from tasks import start_script_insert_date
-
-
-
-
 cpu_col = psutil.cpu_count()  # кол-во ядер
-
-
-# def start_script_delay():
-#     from .tasks import start_script_insert_date
-#     #start_script_insert_date.delay(1)  # delay запускает функцию в фоне
-#     start_script_insert_date.delay(1)
-
-
 
 def new_connection():
     try:
@@ -53,7 +35,7 @@ def new_connection():
             with connection.cursor() as cursor:
                 cursor.execute(f"""ALTER TABLE cpu_5sec ADD COLUMN cpu_{i} real;""")
         # 720*5=3600сек в 1ч  #12*5=60сек (для теста) #721 вставить
-        for cpu_5sec_id in range(1, 11):  # формируем пустую таблицу заполненую NULL
+        for cpu_5sec_id in range(1, 71):  # формируем пустую таблицу заполненую NULL
             with connection.cursor() as cursor:
                 cursor.execute(
                     f"""INSERT INTO cpu_5sec (cpu_5sec_id)
@@ -83,7 +65,7 @@ def start_script():
 
         # для работы с БД нужно создать объект курсор (для выполнения различных команд SQl)
         while True:
-            if id > 10:  # 720*5=3600сек в 1ч  #12*5=60сек (для теста)
+            if id > 71:  # 720*5=3600сек в 1ч  #12*5=60сек (для теста)
                 id = 1
             info = psutil.cpu_percent(interval=5, percpu=True)
             with connection.cursor() as cursor:
@@ -140,7 +122,7 @@ def pause(connection):
 
         id = last_id
         for insert in range(total_time):
-            if id == 11:  # в случае если достигли конца таблицы #####id==10 заменить для поля на 1час
+            if id == 71:  # в случае если достигли конца таблицы #####id==10 заменить для поля на 1час 721
                 id = 1
 
             time_old = timedelta(hours=last_time_DT.hour,

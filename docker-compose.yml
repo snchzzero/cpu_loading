@@ -38,19 +38,38 @@ services:
     ports:
       - 5050:80
 
-  celery:
+#  celery:
+#    build: .
+#    container_name: 'app_celery'
+#    #command: celery -A cpu_loading worker -B
+#    command: celery -A cpu_loading worker -l info
+#    volumes:
+#      - .:/code
+#    links:
+#      - redis
+#    depends_on:
+#      - web
+#      - redis
+#      #- db  # возмжно без зависимости
+
+  # рабочая настройка
+  celery:  # для корректного отображения созданных файлов (скаченных файлов)
+    restart: always
     build: .
     container_name: 'app_celery'
-#    command: celery -A cpu_loading worker -B
     command: celery -A cpu_loading worker -l info
     volumes:
-      - .:/code
+      - ./cpu_ldng:/usr/src/cpu_loading/cpu_ldng
+      #-  ./cpu_ldng:/usr/src/cpu_loading --- ./cpu_ldng - локальная папка внутри cpu_loading
     links:
       - redis
     depends_on:
       - web
       - redis
       #- db  # возмжно без зависимости
+
+
+
 
 #  flower:
 #    #image: puckel/docker-airflow:latest
