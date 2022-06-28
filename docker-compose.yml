@@ -10,19 +10,17 @@ services:
       POSTGRES_DB: postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data/
+
   web:
     restart: always
     build: .
     command: python /usr/src/cpu_loading/manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/usr/src/cpu_loading
-
-
     ports:
       - 8000:8000
     depends_on:
       - pg_db
-
 
   redis:
     image: redis
@@ -41,20 +39,6 @@ services:
     ports:
       - 5050:80
 
-#  celery:
-#    build: .
-#    container_name: 'app_celery'
-#    #command: celery -A cpu_loading worker -B
-#    command: celery -A cpu_loading worker -l info
-#    volumes:
-#      - .:/code
-#    links:
-#      - redis
-#    depends_on:
-#      - web
-#      - redis
-#      #- db  # возмжно без зависимости
-
   # рабочая настройка
   celery:  # для корректного отображения созданных файлов (скаченных файлов)
     restart: always
@@ -69,28 +53,6 @@ services:
     depends_on:
       - web
       - redis
-      #- db  # возмжно без зависимости
-
-
-
-
-#  flower:
-#    #image: puckel/docker-airflow:latest
-#    #restart: always
-#    container_name: flower
-#    build: .
-#    #command: celery -A cpu_loading flower --port=5556
-#    #command: celery -A cpu_loading flower --port=5555
-#    #command: flower -A cpu_loading --port=5555
-#    command: celery flower --port=5556
-#    ports:
-#      - 5556:5555
-#    depends_on:
-#      - web
-#      - redis
-#      - celery
-
-
 
 volumes:
   postgres_data:
