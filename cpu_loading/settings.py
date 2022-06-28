@@ -162,7 +162,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 #REDIS related settings
 #REDIS_HOST = '0.0.0.0'
 #REDIS_HOST = '172.21.0.3'
-# REDIS_HOST = '127.0.0.1'
+#REDIS_HOST = '127.0.0.1'
 #redis://app_redis:6379/0
 
 REDIS_HOST = 'app_redis'  # название контейнера в docker

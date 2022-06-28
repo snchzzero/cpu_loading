@@ -2,16 +2,15 @@ from cpu_ldng.config_db import host, user, password, db_name, port
 import psycopg2
 import psutil
 import csv
-from django.conf import settings
 
 #графики
 import seaborn as sns
 import pandas as pd
 import matplotlib.pyplot as plt
 
+cpu_col = psutil.cpu_count(logical=False)  # кол-во ядер
 
-cpu_col = psutil.cpu_count()  # кол-во ядер
-
+#выбираем все значения из БД
 def select_all():
     try:
         connection = psycopg2.connect(
@@ -34,6 +33,7 @@ def select_all():
         if connection:
             connection.close()
 
+#формируем csv из всей БД
 def csv_all():
     with open('/usr/src/cpu_loading/cpu_ldng/csv_all.csv', 'w') as f:
         writer = csv.writer(f)
@@ -43,10 +43,10 @@ def csv_all():
             ROW.append(f'cpu_{i}')
         writer.writerow(ROW)
         for row in data:
-            print(row)
             writer.writerow(row)
         print("csv_all успешно")
 
+#строим график_1 5сек в течении часа
 def figure_1():
     data = pd.read_csv('/usr/src/cpu_loading/cpu_ldng/csv_all.csv')
     data.head()
@@ -62,9 +62,8 @@ def figure_1():
     plt.xticks(color='w')
     #plt.xticks(rotation=90)
     swarm_plot.figure.savefig("/usr/src/cpu_loading/cpu_ldng/static/cpu_ldng/output_1.png")
-    print("рисунок 2 успешно")
-    #plt.show()
 
+#формируем csv для графика_2
 def csv_srez():
 
     # записываем среднее значение по всем ядрам за каждые 5 сек
@@ -96,13 +95,12 @@ def csv_srez():
             row_1.append(row_2)
             writer.writerow(row_1)
 
-        print("csv_срез успешно успешно")
-
+#строим график_2 1мин в течении часа
 def figure_2():
     data = pd.read_csv('/usr/src/cpu_loading/cpu_ldng/srez_2.csv')
     data.head()
 
-    sns.set(font_scale=1.2)  # размер надписей к осям
+    sns.set(font_scale=1.1)  # размер надписей к осям
     plt.figure(figsize=(22, 10))
 
     swarm_plot = sns.lineplot(data=data, x='cpu_time', y='cpu_avg', legend=False)
@@ -112,13 +110,8 @@ def figure_2():
     swarm_plot.set_title("Усредненная загрузка процессора в течении последнего часа")
     swarm_plot.set_ylabel("загрузка процессора")
     swarm_plot.set_xlabel("время, шаг(60сек.)")
-    plt.xticks(rotation=90)
+    plt.xticks(rotation=45)
     swarm_plot.figure.savefig("/usr/src/cpu_loading/cpu_ldng/static/cpu_ldng/output_2.png")
-    print("рисунок 2 успешно")
-    #plt.show()
 
 
-# csv_all()
-# figure_1()
-# csv_srez()
-# figure_2()
+

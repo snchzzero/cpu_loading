@@ -16,10 +16,13 @@ services:
     command: python /usr/src/cpu_loading/manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/usr/src/cpu_loading
+
+
     ports:
       - 8000:8000
     depends_on:
       - pg_db
+
 
   redis:
     image: redis

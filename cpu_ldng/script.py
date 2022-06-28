@@ -4,8 +4,9 @@ import psutil
 from datetime import datetime, time, timedelta
 import pytz
 
-cpu_col = psutil.cpu_count()  # кол-во ядер
+cpu_col = psutil.cpu_count(logical=False)  # кол-во ядер
 
+# формируем БД (заполняем NULL)
 def new_connection():
     try:
         connection = psycopg2.connect(
@@ -14,11 +15,6 @@ def new_connection():
             password=password,
             database=db_name)
         connection.autocommit = True  # что бы не писать после каждого запроса коммит
-
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT version();")
-            # методо fetchone() возращает либо значание либо None
-            version = cursor.fetchone()
 
         with connection.cursor() as cursor:
             cursor.execute("""
@@ -35,7 +31,7 @@ def new_connection():
             with connection.cursor() as cursor:
                 cursor.execute(f"""ALTER TABLE cpu_5sec ADD COLUMN cpu_{i} real;""")
         # 720*5=3600сек в 1ч  #12*5=60сек (для теста) #721 вставить
-        for cpu_5sec_id in range(1, 71):  # формируем пустую таблицу заполненую NULL
+        for cpu_5sec_id in range(1, 721):  # формируем пустую таблицу заполненую NULL
             with connection.cursor() as cursor:
                 cursor.execute(
                     f"""INSERT INTO cpu_5sec (cpu_5sec_id)
@@ -48,7 +44,7 @@ def new_connection():
             connection.close()
 
 
-# после нажатия кнопки старт добавляем даные CPU в таблицу
+# после нажатия кнопки старт добавляем данные CPU в таблицу
 def start_script():
     try:
         connection = psycopg2.connect(
@@ -65,7 +61,7 @@ def start_script():
 
         # для работы с БД нужно создать объект курсор (для выполнения различных команд SQl)
         while True:
-            if id > 71:  # 720*5=3600сек в 1ч  #12*5=60сек (для теста)
+            if id > 721:  # 720*5=3600сек в 1ч  #12*5=60сек (для теста)
                 id = 1
             info = psutil.cpu_percent(interval=5, percpu=True)
             with connection.cursor() as cursor:
@@ -85,7 +81,7 @@ def start_script():
         if connection:
             connection.close()
 
-
+# после нажатия кнопки стоп, заполняем "0" строки по ядрам CPU в промежутке между паузой и след. стартом
 def pause(connection):
     with connection.cursor() as cursor:
         with connection.cursor() as cursor:
@@ -122,7 +118,7 @@ def pause(connection):
 
         id = last_id
         for insert in range(total_time):
-            if id == 71:  # в случае если достигли конца таблицы #####id==10 заменить для поля на 1час 721
+            if id == 721:  # в случае если достигли конца таблицы #####id==10 заменить для поля на 1час 721
                 id = 1
 
             time_old = timedelta(hours=last_time_DT.hour,
@@ -146,7 +142,7 @@ def pause(connection):
             id += 1
     return id  # возвращаем id с которого продолжим заполнение
 
-
+# проверяем таблицу пустая ли она
 def table_IS_NOT_NULL(connection):
     with connection.cursor() as cursor:
         cursor.execute("""SELECT COUNT(*) FROM cpu_5sec WHERE cpu_time IS NOT NULL;""")

@@ -1,22 +1,13 @@
 from django.shortcuts import render, redirect
-import cpu_ldng.script
-from cpu_ldng.script import new_connection
 from cpu_ldng.forms import Form_StartStop
 from datetime import datetime
 from celery import Celery  # для закрытия задачи по id
-from .tasks import start_script_insert_date
+from .tasks import for_new_connection, start_script_insert_date, start_csv_create_figure
 
-from celery.app.control import Control
-
-from celery.worker.control import revoke
-
-
-from .tasks import start_script_insert_date, start_csv_create_figure
-from celery.app import default_app
-from .create_fig import csv_all, csv_srez, figure_1, figure_2
-
-
-#process_id = 0
+global name
+name = 'home'
+process_id_1 = ""
+process_id_2 = ""
 
 
 def time():
@@ -25,8 +16,7 @@ def time():
 
 def home(request):
     if request.method == 'GET':
-        new_connection()
-        name = ""
+        for_new_connection.delay()
         return render(request, 'cpu_ldng/home.html', {'form': Form_StartStop(), 'now': time(), 'name': name})
     elif request.method == 'POST':
         form = Form_StartStop(request.POST)
@@ -54,42 +44,48 @@ def home(request):
         elif send_fig_f == "send_fig":
             return redirect('send_fig')
         else:
-            name = ""
             return render(request, 'cpu_ldng/home.html', {'form': Form_StartStop(), 'now': time(), 'name': name})
 
 
 def start(request):
+    global name
     name = "start"
-    global process_id
-    process = start_script_insert_date.delay()
-    process_id = process.id
+    global process_id_1
 
-    # process = start_script_insert_date.delay()  # delay запускает функцию в фоне
-    # global process_id
-    # process_id = process.id
+    # удаляем задачу(процесс) по ее id
+    celeryapp = Celery('app', broker="redis://app_redis:6379/0", backend="redis_uri")
+    celeryapp.control.revoke(process_id_1, terminate=True)
+    process = start_script_insert_date.delay()
+    process_id_1 = process.id
 
     return render(request, 'cpu_ldng/home.html', {'name': name, 'now': time()})
 
 
 def stop(request):
+    global name
     name = "stop"
     try:
         # удаляем задачу(процесс) по ее id
         celeryapp = Celery('app', broker="redis://app_redis:6379/0", backend="redis_uri")
-        celeryapp.control.revoke(process_id, terminate=True)
-        #process_id = 0
+        celeryapp.control.revoke(process_id_1, terminate=True)
+
         return render(request, 'cpu_ldng/home.html',
                       {'name': name, 'now': time()})
     except ValueError:
         return render(request, 'cpu_ldng/home.html', {'name': name, 'now': time()})
 
+
 def reset(request):
+    global name
     name = "reset"
     try:
         # удаляем задачу(процесс) по ее id
         celeryapp = Celery('app', broker="redis://app_redis:6379/0", backend="redis_uri")
-        celeryapp.control.revoke(process_id, terminate=True)
-        new_connection()
+        celeryapp.control.revoke(process_id_1, terminate=True)
+        celeryapp.control.revoke(process_id_2, terminate=True)
+
+        for_new_connection.delay()
+
         return render(request, 'cpu_ldng/home.html',
                       {'name': name, 'now': time()})
     except ValueError:
@@ -97,23 +93,16 @@ def reset(request):
 
 
 def create_fig(request):
-    #test_txt()
-    start_csv_create_figure.delay()
-    #csv_all()
-    #figure_1()
-    #csv_srez()
-    #figure_2()
+    global process_id_2
+    process = start_csv_create_figure.delay()
+    process_id_2 = process.id
 
-    # process = start_script_insert_date.delay()  # delay запускает функцию в фоне
-    # global process_id
-    # process_id = process.id
+    return render(request, 'cpu_ldng/home.html', {'name': name, 'now': time()})
 
-    return render(request, 'cpu_ldng/home.html', {'now': time()})
 
 def send_fig(request):
     fig = "send_fig"
     try:
-
-        return render(request, 'cpu_ldng/home.html',{'fig': fig, 'now': time()})
+        return render(request, 'cpu_ldng/home.html', {'name': name, 'fig': fig, 'now': time()})
     except ValueError:
-        return render(request, 'cpu_ldng/home.html', {'now': time()})
+        return render(request, 'cpu_ldng/home.html', {'name': name, 'now': time()})
